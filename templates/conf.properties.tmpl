@@ -1,0 +1,18 @@
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.datasource.url=jdbc:mysql://{{ key "service/perconadb/ip" }}:{{ key "service/perconadb/port" }}/appsone?{{ key "service/keycloak/jdbcparams" }}
+spring.datasource.username={{ key "service/perconadb/username" }}
+spring.datasource.password={{ key "service/perconadb/password_ui" }}
+spring.datasource.hikari.connection-timeout=5000
+spring.datasource.hikari.minimumIdle=5
+spring.datasource.hikari.maximumPoolSize=5
+spring.datasource.hikari.poolName=Heal_ControlCenter_Pool
+
+server.servlet.context-path={{ key "service/heal-cc/context-path" }}
+ds.setup.type=
+ds.filename.headers.properties=headers_details.json
+ds.filename.keycloak.details=keycloak_details.json
+
+ds.keycloak.ip={{ key "service/keycloak/hostname" }}
+ds.keycloak.port={{ key "service/keycloak/port/https" }}
+ds.keycloak.user=appsoneadmin
+ds.keycloak.pwd={{ key "service/keycloak/password" }}

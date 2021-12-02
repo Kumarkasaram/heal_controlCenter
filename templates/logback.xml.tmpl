@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <property name="LOG_LOCATION" value="/tmp/logs/heal-controlcenter.log"/>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_LOCATION}</file>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>/tmp/logs/heal-controlcenter_%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>15MB</maxFileSize>
+            <maxHistory>10</maxHistory>
+            <totalSizeCap>10GB</totalSizeCap>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS, IST} [%thread] %-5level %logger{36}:%line - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.heal.controlcenter" level="{{ key "service/heal-cc/ccloglevel" }}" additivity="false">
+        <appender-ref ref="FILE"/>
+    </logger>
+
+    <root level = "{{ key "service/heal-cc/rootloglevel" }}">
+        <appender-ref ref = "FILE"/>
+    </root>
+
+</configuration>
