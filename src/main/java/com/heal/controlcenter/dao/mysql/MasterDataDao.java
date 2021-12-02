@@ -1,18 +1,21 @@
 package com.heal.controlcenter.dao.mysql;
 
-import com.heal.controlcenter.beans.CompInstClusterDetailsBean;
-import com.heal.controlcenter.beans.MasterSubTypeBean;
-import com.heal.controlcenter.beans.TimezoneBean;
-import com.heal.controlcenter.beans.ViewTypesBean;
-import com.heal.controlcenter.exception.ControlCenterException;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Collections;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collections;
-import java.util.List;
+import com.heal.controlcenter.beans.CompInstClusterDetailsBean;
+import com.heal.controlcenter.beans.MasterComponentBean;
+import com.heal.controlcenter.beans.MasterSubTypeBean;
+import com.heal.controlcenter.beans.TimezoneBean;
+import com.heal.controlcenter.beans.ViewTypesBean;
+import com.heal.controlcenter.exception.ControlCenterException;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Repository
@@ -108,5 +111,23 @@ public class MasterDataDao {
         }
         return masterSubTypeDetailsForId;
     }
-
+    
+    public List<MasterComponentBean> getComponentMasterDataForAccountId(int accountId) {
+        List<MasterComponentBean> masterComponentList = null;
+        try {
+            String GET_MASTER_COMPONENT_DETAILS_QUERY = "select vc.component_id id,vc.component_name name,vc.is_custom isCustom,vc.component_status status, " +
+                    "mc.created_time createdTime,mc.updated_time updatedTime,mc.user_details_id userDetailsId, " +
+                    "mc.account_id accountId,mc.description description, mc.discovery_pattern discoveryPattern, vc.component_type_name componentTypeName, " +
+                    "vc.component_version_name componentVersionName, vc.component_version_id componentVersionId, " +
+                    "vc.component_type_id componentTypeId, vc.common_version_name commonVersionName, " +
+                    "vc.common_version_id commonVersionId from view_components vc, mst_component mc " +
+                    "where vc.component_id = mc.id and mc.account_id in (1,?)";
+            masterComponentList = jdbcTemplate.query(GET_MASTER_COMPONENT_DETAILS_QUERY,
+                    new BeanPropertyRowMapper<>(MasterComponentBean.class),accountId);
+        } catch (Exception e) {
+            log.error("Error in MasterDataDao while getting master component details for id. Reason: {}", e.getMessage(), e);
+        }
+        return masterComponentList;
+    }
+   
 }

@@ -44,6 +44,11 @@ public class ApplicationsController {
     GetAgentTypeAtAccLvlBL getAgentTypeAtAccLvlBL;
     @Autowired
     GetComponentAttributesBL getComponentAttributesBL;
+    @Autowired
+    GetComponentDetailsBL getComponentDetailsBL;
+    @Autowired
+    GetAvailabilityCategoriesBL getAvailabilityCategoriesBL;    
+    
 
     @ApiOperation(value = "Retrieve list of applications", response = GetApplications.class, responseContainer = "List")
     @ApiResponses(value = {@ApiResponse(code = 200, message = "Applications fetching successfully"),
@@ -120,7 +125,7 @@ public class ApplicationsController {
     @ApiResponses(value = {@ApiResponse(code = 200, message = "componentAttributesMappingList   fetched successfully"),
             @ApiResponse(code = 500, message = "Exception encountered while fething componentAttributesMappingList"),
             @ApiResponse(code = 400, message = "Error in fething componentAttributesMappingList ")})
-    @RequestMapping(method = RequestMethod.GET, value = "/accounts/{identifier}/component-attributes ")
+    @RequestMapping(method = RequestMethod.GET, value = "/accounts/{identifier}/component-attributes")
     public ResponseEntity<Object> getComponentAttributes(@RequestHeader(value = "Authorization") String authorization,
                                                     @PathVariable(value = "identifier") String accountIdentifier)
             throws DataProcessingException, ClientException, ServerException {
@@ -131,4 +136,34 @@ public class ApplicationsController {
 
         return ResponseEntity.ok().headers(headersParser.loadHeaderConfiguration()).body(componentAttributesMappingList);
     }
+    
+    @ApiOperation(value = "Component detail of applications", response = AgentTypePojo.class, responseContainer = "List")
+    @ApiResponses(value = {@ApiResponse(code = 200, message = "Component detail  fetched successfully"),
+            @ApiResponse(code = 500, message = "Exception encountered while fething  component-details list"),
+            @ApiResponse(code = 400, message = "Error in fething  Component list ")})
+    @RequestMapping(method = RequestMethod.GET, value = "/accounts/{identifier}/component-details")
+    public ResponseEntity<Object> getComponentDetails(@RequestHeader(value = "Authorization") String authorization,
+                                                   @PathVariable(value = "identifier") String accountIdentifier)
+            throws DataProcessingException, ClientException, ServerException {
+        UtilityBean<Object> applicationList = getComponentDetailsBL.clientValidation(null,authorization, accountIdentifier);
+        Integer controllerBeanList = getComponentDetailsBL.serverValidation(applicationList);
+        List<ComponentDetails> componentDetailList = getComponentDetailsBL.process(controllerBeanList);
+
+        return ResponseEntity.ok().headers(headersParser.loadHeaderConfiguration()).body(componentDetailList);
+    }
+
+    @ApiOperation(value = "availabile Categories of applications", response = AgentTypePojo.class, responseContainer = "List")
+    @ApiResponses(value = {@ApiResponse(code = 200, message = "availabile Categories  fetched successfully"),
+            @ApiResponse(code = 500, message = "Exception encountered while fething  availabile Categories"),
+            @ApiResponse(code = 400, message = "Error in fething  availabile Categories")})
+    @RequestMapping(method = RequestMethod.GET, value = "/accounts/{identifier}/availabilityCategories")
+    public ResponseEntity<Object> availabilityCategories(@RequestHeader(value = "Authorization") String authorization,
+                                                   @PathVariable(value = "identifier") String accountIdentifier)
+            throws DataProcessingException, ClientException, ServerException {
+        UtilityBean<Object> applicationList = getAvailabilityCategoriesBL.clientValidation(null,authorization, accountIdentifier);
+        Integer controllerBeanList = getAvailabilityCategoriesBL.serverValidation(applicationList);
+        List<GetCategory> categoryList = getAvailabilityCategoriesBL.process(controllerBeanList);
+        return ResponseEntity.ok().headers(headersParser.loadHeaderConfiguration()).body(categoryList);
+    }
+
 }
