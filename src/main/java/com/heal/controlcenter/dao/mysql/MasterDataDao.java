@@ -3,16 +3,12 @@ package com.heal.controlcenter.dao.mysql;
 import java.util.Collections;
 import java.util.List;
 
+import com.heal.controlcenter.beans.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import com.heal.controlcenter.beans.CompInstClusterDetailsBean;
-import com.heal.controlcenter.beans.MasterComponentBean;
-import com.heal.controlcenter.beans.MasterSubTypeBean;
-import com.heal.controlcenter.beans.TimezoneBean;
-import com.heal.controlcenter.beans.ViewTypesBean;
 import com.heal.controlcenter.exception.ControlCenterException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -83,7 +79,7 @@ public class MasterDataDao {
         return null;
     }
 
-    public List<CompInstClusterDetailsBean> getCompInstanceDetails(Integer accountId) {
+    public List<CompInstClusterDetails> getCompInstanceDetails(Integer accountId) {
         String query = "select id instanceId,common_version_id commonVersionId, common_version_name commonVersionName,mst_component_id compId,component_name componentName, " +
                 "mst_component_type_id mstComponentTypeId,component_type_name componentTypeName, " +
                 "mst_component_version_id compVersionId,component_version_name componentVersionName,name instanceName,host_id hostId,status, " +
@@ -91,7 +87,7 @@ public class MasterDataDao {
                 "host_address hostAddress, supervisor_id supervisorId from view_component_instance where account_id = " + accountId + " and status = 1";
         try {
             log.debug("getting component instance details.");
-            return jdbcTemplate.query(query, new BeanPropertyRowMapper<>(CompInstClusterDetailsBean.class));
+            return jdbcTemplate.query(query, new BeanPropertyRowMapper<>(CompInstClusterDetails.class));
         } catch (Exception e) {
             log.error("Error occurred while fetching component instance list from 'view_component_instance' table for accountId [{}]. Details: {}, Stack trace: {}", accountId, e.getMessage(), e.getStackTrace());
         }

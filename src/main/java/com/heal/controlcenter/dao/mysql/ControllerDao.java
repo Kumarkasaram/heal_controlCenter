@@ -10,10 +10,8 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-
 import java.util.Collections;
 import java.util.List;
-
 @Repository
 @Slf4j
 public class ControllerDao {
@@ -217,4 +215,16 @@ public class ControllerDao {
             throw new ControlCenterException("Error while adding controller");
         }
     }
+    public List<ControllerBean> getControllerDetailsWithIdentifier(Integer accountId,List<String> controllerIdentifiers) throws ControlCenterException {
+        String query = "select distinct c.id appId, c.name name, c.controller_type_id controllerTypeId, c.identifier identifier, c.status status, c.user_details_id createdBy," +
+                "c.created_time createdOn, c.updated_time updatedTime, c.account_id accountId " +
+                "from controller c where c.account_id = ? and c.identifier in (?) and c.status=1";
+        try {
+            return jdbcTemplate.query(query, new BeanPropertyRowMapper<>(ControllerBean.class),accountId,controllerIdentifiers);
+        } catch (Exception e) {
+            log.error("Exception encountered while getControllerDetailsWithIdentifier list from 'controller' table for accountId [{}]. Details: {}, Stack trace: {}", accountId, e.getMessage(), e.getStackTrace());
+            throw new ControlCenterException("Error occurred while getting applications list.");
+        }
+    }
+
 }

@@ -1,7 +1,8 @@
 package com.heal.controlcenter.dao.mysql;
 
+import java.util.ArrayList;
 import java.util.List;
-
+import com.heal.controlcenter.beans.CompInstClusterMappingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -35,5 +36,17 @@ public class ComponentDao {
 	        }
 	        return viewComponentAttributesList;
 	    }
-	
+
+	public List<CompInstClusterMappingBean> getInstanceClusterMapping(int accountId) {
+		try {
+			String query = "select comp_instance_id compInstanceId, cluster_id clusterId from component_cluster_mapping where account_id=?";
+			List<CompInstClusterMappingBean> compInstClusterMappingBean = jdbcTemplate.query(query, new BeanPropertyRowMapper<>(CompInstClusterMappingBean.class),accountId);
+			return  compInstClusterMappingBean;
+		} catch (Exception e) {
+			String query = "Error while getting compInstClusterMappingBean";
+			log.error(query + ".Reason: {}", e.getMessage(), e);
+			return new ArrayList<>();
+		}
+	}
+
 }

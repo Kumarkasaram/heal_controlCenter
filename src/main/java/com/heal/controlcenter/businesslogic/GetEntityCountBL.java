@@ -112,7 +112,7 @@ public class GetEntityCountBL implements BusinessLogic<InstancesBean, InstancesB
         Map<String, Object> data = new HashMap<>();
         try {
             if (bean.getType().equals(SetupTypes.HOST)) {
-                List<CompInstClusterDetailsBean> details = masterDataDao.getCompInstanceDetails(bean.getAccountId());
+                List<CompInstClusterDetails> details = masterDataDao.getCompInstanceDetails(bean.getAccountId());
                 long count = details.stream().filter(i -> i.getComponentTypeName().equalsIgnoreCase(SetupTypes.HOST.name())).count();
                 data.put(Constants.TOTAL, count);
             } else if (bean.getType().equals(SetupTypes.SERVICE)) {
