@@ -17,14 +17,14 @@ public class DateTimeUtil {
 
     private static final String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
 
-    public Date getDateInGMT(long time) throws ParseException {
+    public static Date getDateInGMT(long time) throws ParseException {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_TIME_PATTERN);
         simpleDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
         String dateTime = simpleDateFormat.format(time);
         return simpleDateFormat.parse(dateTime);
     }
 
-    public String getTimeInGMT(long time) {
+    public static  String getTimeInGMT(long time) {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_TIME_PATTERN);
         simpleDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
         return simpleDateFormat.format(time);
@@ -42,7 +42,7 @@ public class DateTimeUtil {
         }
     }
 
-    public Timestamp getCurrentTimestampInGMT() {
+    public static Timestamp getCurrentTimestampInGMT() {
         try {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat(Constants.DATE_TIME);
             simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));

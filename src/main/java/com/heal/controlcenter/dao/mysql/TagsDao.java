@@ -9,6 +9,9 @@ import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Slf4j
 @Repository
 public class TagsDao {
@@ -37,6 +40,15 @@ public class TagsDao {
         } catch (Exception ex) {
             log.error("Error in getting tag details.");
             throw new ControlCenterException("Error in getting tag details.");
+        }
+    }
+    public List<TagMappingDetails> getTagMappingDetails(int  accountId) throws ControlCenterException {
+        String query = "select id,tag_id tagId,object_id objectId,object_ref_table objectRefTable,tag_key tagKey,tag_value tagValue,created_time createdTime,updated_time updatedTime,account_id accountId,user_details_id userDetailsId from tag_mapping where object_ref_table != 'transaction' and account_id = ?";
+        try{
+            return jdbcTemplate.query(query, new BeanPropertyRowMapper<>(TagMappingDetails.class), accountId);
+        } catch (Exception ex) {
+            log.error("Error in getting tag details.");
+            return new ArrayList<>();
         }
     }
 

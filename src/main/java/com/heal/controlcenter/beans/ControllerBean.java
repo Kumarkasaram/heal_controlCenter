@@ -10,6 +10,7 @@ import java.util.List;
 public class ControllerBean {
 
     private int id;
+    private String appId;
     private String name;
     private String identifier;
     private int status;

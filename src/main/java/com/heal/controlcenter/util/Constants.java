@@ -10,6 +10,9 @@ public class Constants {
     // ECDSA constants
     public static final String BC_PROVIDER_NAME = "BC";
 
+    public static final String TIME_BRACKET_DEF = "15";
+
+
     /**
      * Notification constants
      */
@@ -70,5 +73,13 @@ public class Constants {
     public static final String SERVICE_NOR_SUPPRESSION_MORE_THAN_AN_HOUR_PROPERTY_NAME = "service.nor.suppression.greaterThan.hour";
     public static final String SERVICE_NOR_PERSISTENCE_MORE_THAN_AN_HOUR = "2";
     public static final String SERVICE_NOR_SUPPRESSION_MORE_THAN_AN_HOUR = "5";
+
+    public static final String CONTROLLER_TYPE_NAME_DEFAULT = "ControllerType";
+    public static final String SERVICES_CONTROLLER_TYPE = "Services";
+    public static final String CONTROLLER_TAG = "Controller";
+    public static final String COMP_INSTANCE_TABLE = "comp_instance";
+
+
+
 
 }

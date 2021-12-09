@@ -1,7 +1,23 @@
 package com.heal.controlcenter.controller;
 
+import java.util.List;
+
+import javax.validation.Valid;
+
 import com.heal.controlcenter.beans.*;
 import com.heal.controlcenter.businesslogic.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.heal.controlcenter.exception.ClientException;
 import com.heal.controlcenter.exception.ControlCenterException;
 import com.heal.controlcenter.exception.DataProcessingException;
@@ -11,24 +27,20 @@ import com.heal.controlcenter.pojo.GetApplications;
 import com.heal.controlcenter.pojo.IdPojo;
 import com.heal.controlcenter.pojo.ResponsePojo;
 import com.heal.controlcenter.pojo.UserAccessInfo;
+import com.heal.controlcenter.util.Constants;
 import com.heal.controlcenter.util.JsonFileParser;
+
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
-import java.util.List;
 
 
 @Slf4j
 @RestController
 @Configuration
+@Tag(name ="" ,description= Constants.DESCRIPTION)
 public class ApplicationsController {
 
     @Autowired
@@ -39,7 +51,6 @@ public class ApplicationsController {
     DeleteApplicationsBL deleteApplicationsBL;
     @Autowired
     JsonFileParser headersParser;
-
     @Autowired
     GetAgentTypeAtAccLvlBL getAgentTypeAtAccLvlBL;
     @Autowired
@@ -47,7 +58,9 @@ public class ApplicationsController {
     @Autowired
     GetComponentDetailsBL getComponentDetailsBL;
     @Autowired
-    GetAvailabilityCategoriesBL getAvailabilityCategoriesBL;    
+    GetAvailabilityCategoriesBL getAvailabilityCategoriesBL;
+    @Autowired
+    GetHealthOfInstancesBL getHealthOfInstancesBL;
     
 
     @ApiOperation(value = "Retrieve list of applications", response = GetApplications.class, responseContainer = "List")
@@ -115,8 +128,8 @@ public class ApplicationsController {
             throws DataProcessingException, ClientException, ServerException {
 
         UtilityBean<Object> applicationList = getAgentTypeAtAccLvlBL.clientValidation(null,authorization, accountIdentifier);
-        Integer controllerBeanList = getAgentTypeAtAccLvlBL.serverValidation(applicationList);
-        List<AgentTypePojo> agentTypeList = getAgentTypeAtAccLvlBL.process(controllerBeanList);
+        Integer accountId = getAgentTypeAtAccLvlBL.serverValidation(applicationList);
+        List<AgentTypePojo> agentTypeList = getAgentTypeAtAccLvlBL.process(accountId);
 
         return ResponseEntity.ok().headers(headersParser.loadHeaderConfiguration()).body(agentTypeList);
     }
@@ -131,8 +144,8 @@ public class ApplicationsController {
             throws DataProcessingException, ClientException, ServerException {
 
         UtilityBean<Object> applicationList = getComponentAttributesBL.clientValidation(null,authorization, accountIdentifier);
-        Integer controllerBeanList = getComponentAttributesBL.serverValidation(applicationList);
-        List<ComponentAttributesMapping> componentAttributesMappingList = getComponentAttributesBL.process(controllerBeanList);
+        Integer accountId = getComponentAttributesBL.serverValidation(applicationList);
+        List<ComponentAttributesMapping> componentAttributesMappingList = getComponentAttributesBL.process(accountId);
 
         return ResponseEntity.ok().headers(headersParser.loadHeaderConfiguration()).body(componentAttributesMappingList);
     }
@@ -146,8 +159,8 @@ public class ApplicationsController {
                                                    @PathVariable(value = "identifier") String accountIdentifier)
             throws DataProcessingException, ClientException, ServerException {
         UtilityBean<Object> applicationList = getComponentDetailsBL.clientValidation(null,authorization, accountIdentifier);
-        Integer controllerBeanList = getComponentDetailsBL.serverValidation(applicationList);
-        List<ComponentDetails> componentDetailList = getComponentDetailsBL.process(controllerBeanList);
+        Integer accountId = getComponentDetailsBL.serverValidation(applicationList);
+        List<ComponentDetails> componentDetailList = getComponentDetailsBL.process(accountId);
 
         return ResponseEntity.ok().headers(headersParser.loadHeaderConfiguration()).body(componentDetailList);
     }
@@ -161,9 +174,23 @@ public class ApplicationsController {
                                                    @PathVariable(value = "identifier") String accountIdentifier)
             throws DataProcessingException, ClientException, ServerException {
         UtilityBean<Object> applicationList = getAvailabilityCategoriesBL.clientValidation(null,authorization, accountIdentifier);
-        Integer controllerBeanList = getAvailabilityCategoriesBL.serverValidation(applicationList);
-        List<GetCategory> categoryList = getAvailabilityCategoriesBL.process(controllerBeanList);
+        Integer accountId = getAvailabilityCategoriesBL.serverValidation(applicationList);
+        List<GetCategory> categoryList = getAvailabilityCategoriesBL.process(accountId);
         return ResponseEntity.ok().headers(headersParser.loadHeaderConfiguration()).body(categoryList);
+    }
+
+    @ApiOperation(value = "fetch HealthOfInstances of applications", response = AgentTypePojo.class, responseContainer = "List")
+    @ApiResponses(value = {@ApiResponse(code = 200, message = "HealthOfInstances  fetched successfully"),
+            @ApiResponse(code = 500, message = "Exception encountered while fething  HealthOfInstances"),
+            @ApiResponse(code = 400, message = "Error in fetching HealthOfInstances")})
+    @RequestMapping(method = RequestMethod.GET, value = "/accounts/{identifier}/health_instances")
+    public ResponseEntity<Object> getHealthOfInstances(@RequestHeader(value = "Authorization") String authorization,
+                                                         @PathVariable(value = "identifier") String accountIdentifier)
+            throws DataProcessingException, ClientException, ServerException {
+        UtilityBean<Object> applicationList = getHealthOfInstancesBL.clientValidation(null,authorization, accountIdentifier);
+        UtilityBean<Object> utilityBean = getHealthOfInstancesBL.serverValidation(applicationList);
+        List<InstanceHealthDetails> instanceHealthDetailsList = getHealthOfInstancesBL.process(utilityBean);
+        return ResponseEntity.ok().headers(headersParser.loadHeaderConfiguration()).body(instanceHealthDetailsList);
     }
 
 }
