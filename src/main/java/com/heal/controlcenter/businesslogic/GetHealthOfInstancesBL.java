@@ -24,7 +24,7 @@ import static java.util.Comparator.nullsFirst;
 
 @Component
 @Slf4j
-public class GetHealthOfInstancesBL {
+public class GetHealthOfInstancesBL implements BusinessLogic<Object,UtilityBean<Object>,List<InstanceHealthDetails>> {
     @Autowired
     AccountsDao accountsDao;
     @Autowired
@@ -77,7 +77,7 @@ public class GetHealthOfInstancesBL {
             log.error("Error while extracting userIdentifier from authorization token. Reason: Could be invalid authorization token");
             throw new ServerException("Error while extracting user details from authorization token");
         }
-         return UtilityBean.builder().account(account).userId(userId).build();
+         return UtilityBean.builder().account(account).authToken(userId).userId(userId).build();
     }
 
     public List<InstanceHealthDetails> process(UtilityBean<Object> utilityBean) throws DataProcessingException {
@@ -162,7 +162,7 @@ public class GetHealthOfInstancesBL {
         }
     }
 
-    private Set<String> getServicesList(Map<Integer, Set<String>> instanceServices, int clusterId) {
+    public Set<String> getServicesList(Map<Integer, Set<String>> instanceServices, int clusterId) {
         Set<String> services = new HashSet<>();
         if(instanceServices.containsKey(clusterId)) {
             return instanceServices.get(clusterId);
@@ -172,7 +172,7 @@ public class GetHealthOfInstancesBL {
         }
     }
 
-   private  List<InstanceHealthDetails> getSortedList(List<InstanceHealthDetails> instanceHealthDetails){
+   public  List<InstanceHealthDetails> getSortedList(List<InstanceHealthDetails> instanceHealthDetails){
         if (Objects.isNull(instanceHealthDetails)){
             return new ArrayList<>();
         }

@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import com.heal.controlcenter.beans.*;
+import com.heal.controlcenter.businesslogic.*;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,10 +26,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.heal.controlcenter.businesslogic.GetAgentTypeAtAccLvlBL;
-import com.heal.controlcenter.businesslogic.GetAvailabilityCategoriesBL;
-import com.heal.controlcenter.businesslogic.GetComponentAttributesBL;
-import com.heal.controlcenter.businesslogic.GetComponentDetailsBL;
 import com.heal.controlcenter.exception.ClientException;
 import com.heal.controlcenter.util.JsonFileParser;
 
@@ -48,14 +45,18 @@ public class ApplicationControllerIT {
 	    JsonFileParser headersParser;
 	    @Autowired
 	    ObjectMapper objectMapper;
+		@MockBean
+		GetHealthOfInstancesBL getHealthOfInstancesBL;
 
 	    List<AgentTypePojo> agentTypePojoList= null;
 	    List<ComponentAttributesMapping> componentAttributesMappingList = null;
 	    UtilityBean<Object> mockutilityBean = null;
 	    List<ComponentDetails> componentDetailsList =null;
 	    List<GetCategory> getcategoryList  =null;
+		List<InstanceHealthDetails> instanceHealthDetailsList=null;
 
-	    @BeforeEach
+
+	@BeforeEach
 	    void setUp() {
 	        mockutilityBean = UtilityBean.<Object>builder().pojoObject("mockUserId").accountIdentifier("mockUserId").authToken("mockUserId").build();
 	         
@@ -78,6 +79,16 @@ public class ApplicationControllerIT {
 	        //mock getCtegoryList
 	        getcategoryList = new ArrayList<>();
 	        getcategoryList.add(GetCategory.builder().id(12).name("getcategoryTest").workLoad(1).build());
+
+			// setting up  InstanceHealthDetails mock data
+			instanceHealthDetailsList = new ArrayList<>();
+			InstanceHealthDetails instanceHealthDetails = new InstanceHealthDetails();
+			instanceHealthDetails.setInstanceName("instanceName");
+			instanceHealthDetails.setId(12);
+			instanceHealthDetails.setDataPostStatus(1);
+			instanceHealthDetails.setLastPostedTime(1L);
+			instanceHealthDetails.setType("type");
+			instanceHealthDetailsList.add(instanceHealthDetails);
 	    }
 
 	    @AfterEach
@@ -86,6 +97,7 @@ public class ApplicationControllerIT {
 	    	componentAttributesMappingList=null;
 	    	componentDetailsList =null;
 	    	getcategoryList=null;
+			instanceHealthDetailsList =null;
 	    }
 
 	    @Test
@@ -241,4 +253,43 @@ public class ApplicationControllerIT {
 	                .andReturn()
 	                .getResponse();
 	    }
+
+
+	@Test
+	void getHealthOfInstances() throws Exception {
+		Mockito.when(getHealthOfInstancesBL.clientValidation(Mockito.anyString())).thenReturn(mockutilityBean);
+		Mockito.when(getHealthOfInstancesBL.serverValidation(Mockito.any())).thenReturn(mockutilityBean);
+		Mockito.when(getHealthOfInstancesBL.process(Mockito.any())).thenReturn(instanceHealthDetailsList);
+		Mockito.when(headersParser.loadHeaderConfiguration()).thenReturn(new HttpHeaders() {{
+			set("authorization", "check2");
+		}});
+		MockHttpServletResponse mockHttpServletResponse = mockMvc.perform(get("/accounts/{identifier}/health_instances","identifier")
+						.header("authorization", "check2"))
+				.andExpect(status().isOk())
+				.andExpect(header().string("authorization", "check2"))
+				.andExpect(jsonPath("$.[0].id").value(12))
+				.andReturn()
+				.getResponse();
+		assertThat(mockHttpServletResponse.getStatus()).isEqualTo(HttpStatus.OK.value());
+		assertThat(mockHttpServletResponse.getHeader("authorization")).isEqualTo("check2");
+	}
+
+	@Test
+	void getHealthOfInstances_When500Error() throws Exception {
+		given(getHealthOfInstancesBL.process(Mockito.any())).willAnswer( exc -> { throw new Exception("Test data exception"); });
+		Mockito.when(headersParser.loadHeaderConfiguration()).thenReturn(new HttpHeaders(){{
+			set("Authorization", "check2");
+		}});
+		MockHttpServletResponse mockHttpServletResponse = mockMvc.perform(get("/accounts/{identifier}/health_instances","identifier")
+						.header("Authorization", "check2"))
+				.andExpect(header().string("Authorization", "check2"))
+				.andExpect(status().isInternalServerError())
+				.andExpect(jsonPath("$.data", Matchers.aMapWithSize(6)))
+				.andExpect(jsonPath("$.data", Matchers.hasKey("status")))
+				.andExpect(jsonPath("$.data", Matchers.hasKey("type")))
+				.andExpect(jsonPath("$.data", Matchers.hasKey("path")))
+				.andExpect(jsonPath("$.data", Matchers.hasKey("error")))
+				.andReturn()
+				.getResponse();
+	}
 }

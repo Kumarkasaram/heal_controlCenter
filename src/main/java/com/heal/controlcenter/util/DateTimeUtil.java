@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.TimeZone;
 
 @Slf4j
+@Component
 public class DateTimeUtil {
 
     private static final String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
