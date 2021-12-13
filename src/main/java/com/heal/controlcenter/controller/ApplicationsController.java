@@ -204,11 +204,11 @@ public class ApplicationsController {
     @RequestMapping(method = RequestMethod.GET, value = "/accounts/{identifier}/audit-data")
     public ResponseEntity<Object> auditTrailService(@RequestHeader(value = "Authorization") String authorization,
                                                        @PathVariable(value = "identifier") String accountIdentifier,
-                                                        @RequestParam(value = "fromTime" ,required = false) String fromTime, @RequestParam(value = "toTime",required = false) String toTime,
-                                                        @RequestParam(value = "serviceId" ,required = false) String serviceId, @RequestParam(value = "applicationId",required = false) String applicationId,
-                                                        @RequestParam(value = "activityTypeId" ,required = false) String activityTypeId, @RequestParam(value = "userId",required = false) String userId)
+                                                        @RequestParam(value = "fromTime" ,required = false) String []fromTime, @RequestParam(value = "toTime",required = false) String [] toTime,
+                                                        @RequestParam(value = "serviceId" ,required = false) String [] serviceId, @RequestParam(value = "applicationId",required = false) String [] applicationId,
+                                                        @RequestParam(value = "activityTypeId" ,required = false) String [] activityTypeId, @RequestParam(value = "userId",required = false) String [] userId)
             throws DataProcessingException, ClientException, ServerException {
-            Map<String,String> requestParam = new HashMap();
+            Map<String,String[]> requestParam = new HashMap();
             requestParam.put("toTime",toTime);
             requestParam.put("fromTime",fromTime);
             requestParam.put("serviceId",serviceId);

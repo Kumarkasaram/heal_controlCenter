@@ -50,8 +50,7 @@ public class GetAuditTrailBL {
     private final Map<Integer, MasterPageActionBean> subActivityTypeMap = masterDataDao.getPageActionsMasterData().stream().collect(Collectors.toMap(MasterPageActionBean::getId, e -> e));
     private Map<Integer, List<ViewApplicationServiceMappingBean>> svcMappedToApp = new HashMap<>();
 
-    public UtilityBean<AuditTrailBean> clientValidation(Map request, String... requestObject ) throws ClientException {
-        UtilityBean<AuditTrailBean> utilityBean = new UtilityBean();
+    public UtilityBean<AuditTrailBean> clientValidation(Map<String,String[]> request, String... requestObject ) throws ClientException {
         if (requestObject == null) {
             log.error(UIMessages.REQUEST_NULL);
             throw new ClientException(UIMessages.REQUEST_NULL);
@@ -68,22 +67,22 @@ public class GetAuditTrailBL {
             throw new ClientException("Invalid account identifier");
         }
 
-        String[] fromTime = (String[]) request.get(Constants.REQUEST_PARAM_FROM_TIME);
+        String[] fromTime = request.get(Constants.REQUEST_PARAM_FROM_TIME);
         if (fromTime == null || StringUtils.isEmpty(fromTime[0])) {
             log.error("invalid from time");
             throw new ClientException("invalid fromTime");
         }
 
-        String[] toTime = (String[]) request.get(Constants.REQUEST_PARAM_TO_TIME);
+        String[] toTime =  request.get(Constants.REQUEST_PARAM_TO_TIME);
         if (toTime == null || StringUtils.isEmpty(toTime[0])) {
             log.error("invalid toTime");
             throw new ClientException("invalid totime");
         }
 
-        String[] serviceIds = (String[]) request.get(Constants.AUDIT_PARAM_SERVICE_NAME);
-        String[] applicationIds = (String[]) request.get(Constants.AUDIT_PARAM_APPLICATION_NAME);
-        String[] activityTypeIds = (String[]) request.get(Constants.AUDIT_PARAM_ACTIVITY_TYPE);
-        String[] userId = (String[]) request.get(Constants.AUDIT_PARAM_USER_NAME);
+        String[] serviceIds = request.get(Constants.AUDIT_PARAM_SERVICE_NAME);
+        String[] applicationIds = request.get(Constants.AUDIT_PARAM_APPLICATION_NAME);
+        String[] activityTypeIds = request.get(Constants.AUDIT_PARAM_ACTIVITY_TYPE);
+        String[] userId =  request.get(Constants.AUDIT_PARAM_USER_NAME);
 
         List<Integer> appIds = getIds(applicationIds);
         List<Integer> srvIds = getIds(serviceIds);
@@ -145,7 +144,7 @@ public class GetAuditTrailBL {
                     offset < Constants.DEFAULT_VALUE1 ? "-" : "+",
                     Math.abs(offset) / Constants.DEFAULT_VALUE2,
                     Math.abs(offset) / Constants.DEFAULT_VALUE3 % Constants.DEFAULT_VALUE4);
-            AuditTrailBean auditTrailBean = (AuditTrailBean) utilityBean.getPojoObject();
+            AuditTrailBean auditTrailBean = utilityBean.getPojoObject();
             auditTrailBean.setAccountId(accountId);
             auditTrailBean.setTimeZone(gmtTZ);
             auditTrailBean.setDefaultTimeZone(Constants.DEFAULT_TIME_ZONE);
@@ -161,6 +160,7 @@ public class GetAuditTrailBL {
             }
             for (Integer featureId : utilityBean.getPojoObject().getBigFeatureIds()) {
                 if (!activityTypeMap.containsKey(featureId)) {
+                    throw new ServerException(UIMessages.ERROR_INVALID_BIG_FEATURE_ID);
                 }
             }
             if (utilityBean.getPojoObject().getServiceIds() == null || utilityBean.getPojoObject().getServiceIds().size() == 0) {
@@ -177,7 +177,7 @@ public class GetAuditTrailBL {
         String whereClause = getWhereClause(bean);
         List<AuditTrailPojo> auditTrailData;
         try {
-            List<AuditBean> auditBeanDb =auditTrailDao.getAuditTrail(bean, whereClause);
+            List<AuditBean> auditBeanDb = auditTrailDao.getAuditTrail(bean, whereClause);
             auditTrailData = getAuditDataList(bean, auditBeanDb);
         } catch (ControlCenterException e) {
             throw new DataProcessingException(e.getMessage());
@@ -274,7 +274,7 @@ public class GetAuditTrailBL {
     }
 
 
-    private List<AuditTrailPojo> getAuditDataList(AuditTrailBean bean, List<AuditBean> auditBeanDb) throws ControlCenterException {
+    List<AuditTrailPojo> getAuditDataList(AuditTrailBean bean, List<AuditBean> auditBeanDb) throws ControlCenterException {
         Map<Integer, ControllerBean> ControllerMap = controllerDao.getControllerList(bean.getAccountId())
                 .stream()
                 .collect(Collectors.toMap(e -> Integer.parseInt(e.getAppId()), e -> e));
@@ -357,7 +357,6 @@ public class GetAuditTrailBL {
                 auditTrailPojo.setApplicationName(app.getApplicationName());
                 result.add(auditTrailPojo);
             }
-
         }else{
             result.add(auditTrailPojo);
         }

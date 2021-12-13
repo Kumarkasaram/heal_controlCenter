@@ -1,6 +1,7 @@
 package com.heal.controlcenter.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -8,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
@@ -47,6 +49,8 @@ public class ApplicationControllerIT {
 	    ObjectMapper objectMapper;
 		@MockBean
 		GetHealthOfInstancesBL getHealthOfInstancesBL;
+		@MockBean
+		GetAuditTrailBL getAuditTrailBL;
 
 	    List<AgentTypePojo> agentTypePojoList= null;
 	    List<ComponentAttributesMapping> componentAttributesMappingList = null;
@@ -54,12 +58,13 @@ public class ApplicationControllerIT {
 	    List<ComponentDetails> componentDetailsList =null;
 	    List<GetCategory> getcategoryList  =null;
 		List<InstanceHealthDetails> instanceHealthDetailsList=null;
+		List<AuditTrailPojo> auditTrailData = null;
+
 
 
 	@BeforeEach
 	    void setUp() {
 	        mockutilityBean = UtilityBean.<Object>builder().pojoObject("mockUserId").accountIdentifier("mockUserId").authToken("mockUserId").build();
-	         
 	        agentTypePojoList = new ArrayList<>();
 	        agentTypePojoList.add(AgentTypePojo.builder() .id(12).name("test").build());
 
@@ -89,6 +94,17 @@ public class ApplicationControllerIT {
 			instanceHealthDetails.setLastPostedTime(1L);
 			instanceHealthDetails.setType("type");
 			instanceHealthDetailsList.add(instanceHealthDetails);
+
+		// mock auditTrailPojo
+		auditTrailData = new ArrayList<>();
+		AuditTrailPojo auditTrailPojo = new AuditTrailPojo();
+		auditTrailPojo.setAuditTime(1L);
+		auditTrailPojo.setApplicationName("audit_trail");
+		auditTrailPojo.setOperationType("Ap");
+		auditTrailPojo.setActivityType("activityType");
+		auditTrailPojo.setSubActivityType("subActivityType");
+		auditTrailPojo.setValue(new HashMap<>());
+		auditTrailData.add(auditTrailPojo);
 	    }
 
 	    @AfterEach
@@ -98,6 +114,7 @@ public class ApplicationControllerIT {
 	    	componentDetailsList =null;
 	    	getcategoryList=null;
 			instanceHealthDetailsList =null;
+			auditTrailData =null;
 	    }
 
 	    @Test
@@ -291,5 +308,27 @@ public class ApplicationControllerIT {
 				.andExpect(jsonPath("$.data", Matchers.hasKey("error")))
 				.andReturn()
 				.getResponse();
+	}
+
+
+
+	@Test
+	void auditTrailService() throws Exception {
+		UtilityBean utility = UtilityBean.<AuditBean>builder().pojoObject(new AuditBean()).accountIdentifier("mockUserId").authToken("mockUserId").build();
+		Mockito.when(getAuditTrailBL.clientValidation(any(),Mockito.anyString())).thenReturn(utility);
+		Mockito.when(getAuditTrailBL.serverValidation(Mockito.any())).thenReturn(new AuditTrailBean());
+		Mockito.when(getAuditTrailBL.process(Mockito.any())).thenReturn(auditTrailData);
+		Mockito.when(headersParser.loadHeaderConfiguration()).thenReturn(new HttpHeaders() {{
+			set("authorization", "check2");
+		}});
+		MockHttpServletResponse mockHttpServletResponse = mockMvc.perform(get("/accounts/{identifier}/audit_data","identifier")
+						.header("authorization", "check2"))
+				.andExpect(status().isOk())
+				.andExpect(header().string("authorization", "check2"))
+				.andExpect(jsonPath("$.[0].applicationName").value("audit_trail"))
+				.andReturn()
+				.getResponse();
+		assertThat(mockHttpServletResponse.getStatus()).isEqualTo(HttpStatus.OK.value());
+		assertThat(mockHttpServletResponse.getHeader("authorization")).isEqualTo("check2");
 	}
 }
