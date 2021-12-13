@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserDetailsBean {
+    private String id;
     private String userId;
     private String userName;
     private String role;

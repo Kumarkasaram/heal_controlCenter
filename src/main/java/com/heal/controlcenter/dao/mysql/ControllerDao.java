@@ -48,16 +48,16 @@ public class ControllerDao {
         }
     }
 
-    public List<ViewApplicationServiceMappingBean> getServicesMappedToApplication(Integer accountId, String appIdentifier) throws ControlCenterException {
+    public List<ViewApplicationServiceMappingBean> getServicesMappedToApplicationByApplicationId(Integer accountId, List<Integer> appId) throws ControlCenterException {
         String query = "select service_id serviceId, service_name serviceName, service_identifier serviceIdentifier, " +
                 "application_id applicationId, application_name applicationName, application_identifier applicationIdentifier " +
                 "from view_application_service_mapping " +
-                "where account_id = " + accountId + " and application_identifier = '" + appIdentifier + "'";
+                "where account_id =  ? and application_identifier in (?)";
         try {
             log.debug("getting services linked to application.");
-            return jdbcTemplate.query(query, new BeanPropertyRowMapper<>(ViewApplicationServiceMappingBean.class));
+            return jdbcTemplate.query(query, new BeanPropertyRowMapper<>(ViewApplicationServiceMappingBean.class),accountId,appId);
         } catch (Exception e) {
-            log.error("Exception encountered while fetching services linked to application from 'view_application_service_mapping' table for accountId [{}] and applicationIdentifier [{}]. Details: {}, Stack trace: {}", accountId, appIdentifier, e.getMessage(), e.getStackTrace());
+            log.error("Exception encountered while fetching services linked to application from 'view_application_service_mapping' table for accountId [{}] and applicationId [{}]. Details: {}, Stack trace: {}", accountId, appId, e.getMessage(), e.getStackTrace());
             throw new ControlCenterException("Error occurred while getting services linked to application.");
         }
     }

@@ -1,5 +1,6 @@
 package com.heal.controlcenter.dao.mysql;
 
+import com.heal.controlcenter.beans.MasterTimezoneBean;
 import com.heal.controlcenter.beans.TimezoneBean;
 import com.heal.controlcenter.exception.ControlCenterException;
 import lombok.extern.slf4j.Slf4j;
@@ -26,4 +27,17 @@ public class TimeZoneDao {
             throw new ControlCenterException("Error in fetching timezones");
         }
     }
+    public MasterTimezoneBean getTimezoneByAccountId(int accountId) {
+        try {
+            String query = "select mt.id id, mt.timeoffset timeOffset, mt.time_zone_id timeZoneId, mt.account_id accountId " +
+                    "from tag_mapping tm, mst_timezone mt, tag_details td " +
+                    "where tm.object_id = ? and tm.object_ref_table = 'account' and tm.tag_id = td.id " +
+                    "and td.name='Timezone' and mt.id = tm.tag_key";
+            return jdbcTemplate.queryForObject(query, new BeanPropertyRowMapper<>(MasterTimezoneBean.class),accountId);
+        } catch (Exception e) {
+            log.error("Invalid input parameter/s provided. Details:  accountId [{}]. Details: ",  accountId, e);
+            return null;
+        }
+    }
+
 }

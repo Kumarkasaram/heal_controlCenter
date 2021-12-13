@@ -1,7 +1,9 @@
 package com.heal.controlcenter.dao.mysql;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import com.heal.controlcenter.beans.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,7 @@ public class MasterDataDao {
 
     @Autowired
     JdbcTemplate jdbcTemplate;
+
 
     public TimezoneBean getTimeZoneWithId(String timeZoneId) throws ControlCenterException {
         String query = "select id, time_zone_id timeZoneId, timeoffset offset, user_details_id userDetailsId, account_id accountId, " +
@@ -124,6 +127,25 @@ public class MasterDataDao {
             log.error("Error in MasterDataDao while getting master component details for id. Reason: {}", e.getMessage(), e);
         }
         return masterComponentList;
+    }
+
+    public List<MasterPageActionBean> getPageActionsMasterData(){
+        String query = "select id id, name name, status status, created_time createdTime, updated_time updatedTime, user_details_id userDetailsId from mst_page_actions where status = 1";
+        try {
+            return jdbcTemplate.query(query, new BeanPropertyRowMapper<>(MasterPageActionBean.class));
+        } catch (Exception ex) {
+            return new ArrayList<MasterPageActionBean>();
+        }
+    }
+
+    public List<MasterBigFeatureBean> getBigFeaturesMasterData()  {
+        String query = "select id id, name name, identifier identifier, description description, ui_visible uiVisible, status status, dashboard_name dashboardName, created_time createdTime, updated_time updatedTime, user_details_id userDetailsId from mst_big_features where status=1";
+        try {
+            return jdbcTemplate.query(query, new BeanPropertyRowMapper<>(MasterBigFeatureBean.class));
+        } catch (Exception ex) {
+            log.error("Error while fetching big feature data details for id [{}]. Details: ", ex);
+            return new ArrayList<MasterBigFeatureBean>();
+        }
     }
    
 }

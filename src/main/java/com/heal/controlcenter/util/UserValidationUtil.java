@@ -1,11 +1,13 @@
 package com.heal.controlcenter.util;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.heal.controlcenter.beans.*;
 import com.heal.controlcenter.dao.mysql.AccountsDao;
 import com.heal.controlcenter.dao.mysql.ControllerDao;
+import com.heal.controlcenter.exception.ControlCenterException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -125,4 +127,50 @@ public class UserValidationUtil {
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
     }
+
+    public  List<ControllerBean> getAccessibleApplicationsForUser(String userIdentifier, String accountIdentifier) {
+        UserAccessBean accessDetails;
+        accessDetails = accountDao.fetchUserAccessDetailsUsingIdentifier(userIdentifier);
+
+        if (accessDetails == null) {
+            log.error("User access bean unavailable for user [{}] and account [{}]", userIdentifier, accountIdentifier);
+            return new ArrayList<>();
+        }
+        Type userBeanType = new TypeToken<AccessDetailsBean>() {
+        }.getType();
+        AccessDetailsBean bean = CommonUtils.jsonToObject(accessDetails.getAccessDetails(), userBeanType);
+        if (bean == null || bean.getAccounts() == null) {
+            log.error("Access details unavailable for user [{}]", userIdentifier);
+            return new ArrayList<>();
+        }
+
+        if (bean.getAccounts().contains(accountIdentifier)) {
+            int accessibleAccountId = accountDao.getAccountByIdentifier(accountIdentifier).getId();
+            Map<String, AccessDetailsBean.Application> accessibleApplications = bean.getAccountMapping();
+
+            if (accessibleApplications == null || accessibleApplications.isEmpty()) {
+                log.error("There no applications mapped to account [{}] and user [{}]",
+                        accountIdentifier, userIdentifier);
+                return new ArrayList<>();
+            }
+
+            AccessDetailsBean.Application applicationIdentifiers = accessibleApplications.get(accountIdentifier);
+            List<ControllerBean> applicationControllerList = controllerDao.getApplicationsList(accessibleAccountId);
+
+            if (applicationIdentifiers.getApplications().contains("*")) {
+                return applicationControllerList;
+            } else {
+                return applicationControllerList.parallelStream()
+                        .filter(app -> (applicationIdentifiers.getApplications().contains(app.getIdentifier())))
+                        .collect(Collectors.toList());
+
+            }
+        } else if (bean.getAccounts().contains("*")) {
+            int accessibleAccountId = accountDao.getAccountByIdentifier(accountIdentifier).getId();
+            return controllerDao.getApplicationsList(accessibleAccountId);
+        }
+
+        return new ArrayList<>();
+    }
+
 }

@@ -79,6 +79,29 @@ public class Constants {
     public static final String CONTROLLER_TAG = "Controller";
     public static final String COMP_INSTANCE_TABLE = "comp_instance";
 
+    /*QueryParam */
+    public static final String REQUEST_PARAM_FROM_TIME = "fromTime";
+    public static final String REQUEST_PARAM_TO_TIME = "toTime";
+    public static final String AUDIT_PARAM_SERVICE_NAME = "serviceId";
+    public static final String AUDIT_PARAM_APPLICATION_NAME = "applicationId";
+    public static final String AUDIT_PARAM_USER_NAME = "userId";
+    public static final String AUDIT_PARAM_ACTIVITY_TYPE = "activityTypeId";
+
+    //TimeZone
+    public static final String DEFAULT_TIME_ZONE="+00:00";
+    public static final String TIME_ZONE_FORMAT="%s%02d:%02d";
+    public static final int DEFAULT_VALUE1 = 0;
+    public static final int DEFAULT_VALUE2 = 3600000;
+    public static final int DEFAULT_VALUE3 = 60000;
+    public static final int DEFAULT_VALUE4 = 60;
+    public static final String DB_CONDITION=") and ";
+
+
+
+
+    //validation msg
+    public static final String INVALID_TO_TIME = "invalid toTime provided";
+    public static final String INVALID_FROM_TIME = "invalid fromTime provided";
 
 
 

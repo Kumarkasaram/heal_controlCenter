@@ -1,6 +1,8 @@
 package com.heal.controlcenter.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.validation.Valid;
 
@@ -61,6 +63,8 @@ public class ApplicationsController {
     GetAvailabilityCategoriesBL getAvailabilityCategoriesBL;
     @Autowired
     GetHealthOfInstancesBL getHealthOfInstancesBL;
+    @Autowired
+    GetAuditTrailBL getAuditTrailBL;
     
 
     @ApiOperation(value = "Retrieve list of applications", response = GetApplications.class, responseContainer = "List")
@@ -191,6 +195,30 @@ public class ApplicationsController {
         UtilityBean<Object> utilityBean = getHealthOfInstancesBL.serverValidation(applicationList);
         List<InstanceHealthDetails> instanceHealthDetailsList = getHealthOfInstancesBL.process(utilityBean);
         return ResponseEntity.ok().headers(headersParser.loadHeaderConfiguration()).body(instanceHealthDetailsList);
+    }
+
+    @ApiOperation(value = "fetch audit trail of applications", response = AgentTypePojo.class, responseContainer = "List")
+    @ApiResponses(value = {@ApiResponse(code = 200, message = " audit trail  fetched successfully"),
+            @ApiResponse(code = 500, message = "Exception encountered while fetching   audit trail"),
+            @ApiResponse(code = 400, message = "Error in fetching  audit trail")})
+    @RequestMapping(method = RequestMethod.GET, value = "/accounts/{identifier}/audit-data")
+    public ResponseEntity<Object> auditTrailService(@RequestHeader(value = "Authorization") String authorization,
+                                                       @PathVariable(value = "identifier") String accountIdentifier,
+                                                        @RequestParam(value = "fromTime" ,required = false) String fromTime, @RequestParam(value = "toTime",required = false) String toTime,
+                                                        @RequestParam(value = "serviceId" ,required = false) String serviceId, @RequestParam(value = "applicationId",required = false) String applicationId,
+                                                        @RequestParam(value = "activityTypeId" ,required = false) String activityTypeId, @RequestParam(value = "userId",required = false) String userId)
+            throws DataProcessingException, ClientException, ServerException {
+            Map<String,String> requestParam = new HashMap();
+            requestParam.put("toTime",toTime);
+            requestParam.put("fromTime",fromTime);
+            requestParam.put("serviceId",serviceId);
+            requestParam.put("applicationId",applicationId);
+            requestParam.put("activityTypeId",activityTypeId);
+            requestParam.put("userId",userId);
+        UtilityBean<AuditTrailBean> utilityBean = getAuditTrailBL.clientValidation(requestParam,authorization, accountIdentifier);
+        AuditTrailBean auditTrailBean = getAuditTrailBL.serverValidation(utilityBean);
+        List<AuditTrailPojo> auditTrailPojoList = getAuditTrailBL.process(auditTrailBean);
+        return ResponseEntity.ok().headers(headersParser.loadHeaderConfiguration()).body(auditTrailPojoList);
     }
 
 }
