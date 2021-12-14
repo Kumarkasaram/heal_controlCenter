@@ -8,7 +8,6 @@ import java.util.Map;
 
 @Data
 @NoArgsConstructor
-@Builder
 public class AuditTrailPojo {
     String applicationName ;
     String ServiceName;

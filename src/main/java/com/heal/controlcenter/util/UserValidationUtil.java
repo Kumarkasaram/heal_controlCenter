@@ -45,7 +45,7 @@ public class UserValidationUtil {
         return userAccessDetails;
     }
 
-    private UserAccessDetails getUserAccessibleApplicationsServices(String accessDetails, String userIdentifier, String accountIdentifier) {
+    public UserAccessDetails getUserAccessibleApplicationsServices(String accessDetails, String userIdentifier, String accountIdentifier) {
         UserAccessDetails userAccessDetails = null;
 
         Type userBeanType = new TypeReference<AccessDetailsBean>() {

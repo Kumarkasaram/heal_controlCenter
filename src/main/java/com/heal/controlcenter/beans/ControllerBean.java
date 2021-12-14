@@ -1,12 +1,15 @@
 package com.heal.controlcenter.beans;
 
 import com.heal.controlcenter.pojo.ServiceConfigPojo;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
+@NoArgsConstructor
 public class ControllerBean {
 
     private int id;
@@ -26,4 +29,11 @@ public class ControllerBean {
     private int pluginSuppressionInterval;
     private boolean pluginWhitelisted;
 
+    public ControllerBean (int accountId,String appId,String name,int status,int controllerTypeId) {
+      this.accountId= accountId;
+      this.appId = appId;
+      this.name =name;
+      this.status =status;
+      this.controllerTypeId =controllerTypeId;
+    }
 }

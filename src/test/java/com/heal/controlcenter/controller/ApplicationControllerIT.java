@@ -321,7 +321,7 @@ public class ApplicationControllerIT {
 		Mockito.when(headersParser.loadHeaderConfiguration()).thenReturn(new HttpHeaders() {{
 			set("authorization", "check2");
 		}});
-		MockHttpServletResponse mockHttpServletResponse = mockMvc.perform(get("/accounts/{identifier}/audit_data","identifier")
+		MockHttpServletResponse mockHttpServletResponse = mockMvc.perform(get("/accounts/{identifier}/audit-data","identifier")
 						.header("authorization", "check2"))
 				.andExpect(status().isOk())
 				.andExpect(header().string("authorization", "check2"))

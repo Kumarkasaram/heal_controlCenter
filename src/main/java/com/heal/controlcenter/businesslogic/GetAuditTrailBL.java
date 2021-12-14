@@ -46,8 +46,6 @@ public class GetAuditTrailBL {
     DateTimeUtil dateTimeUtil;
 
     private static final ObjectMapper objectMapper = CommonUtils.getObjectMapperWithHtmlEncoder();
-    private final Map<Integer, MasterBigFeatureBean> activityTypeMap = masterDataDao.getBigFeaturesMasterData().stream().collect(Collectors.toMap(MasterBigFeatureBean::getId, e -> e));
-    private final Map<Integer, MasterPageActionBean> subActivityTypeMap = masterDataDao.getPageActionsMasterData().stream().collect(Collectors.toMap(MasterPageActionBean::getId, e -> e));
     private Map<Integer, List<ViewApplicationServiceMappingBean>> svcMappedToApp = new HashMap<>();
 
     public UtilityBean<AuditTrailBean> clientValidation(Map<String,String[]> request, String... requestObject ) throws ClientException {
@@ -89,12 +87,11 @@ public class GetAuditTrailBL {
         List<Integer> activityIds = getActivityTypeIds(activityTypeIds);
 
         AuditTrailBean auditTrailBean = null;
-
         if (!StringUtils.isEmpty(toTime[0]) && !StringUtils.isEmpty(fromTime[0])) {
-            auditTrailBean = AuditTrailBean.builder()
-                    .appIds(appIds)
-                    .serviceIds(srvIds)
-                    .bigFeatureIds(activityIds).build();
+            auditTrailBean = new AuditTrailBean();
+            auditTrailBean.setAppIds(appIds);
+            auditTrailBean.setServiceIds(srvIds);
+            auditTrailBean.setBigFeatureIds(activityIds);
             auditTrailBean.setFromTime(parseFromTime(fromTime[0]));
             auditTrailBean.setToTime(parseToTime(toTime[0]));
             if (userId != null && !StringUtils.isEmpty(userId[0])) {
@@ -110,6 +107,7 @@ public class GetAuditTrailBL {
 
 
     public AuditTrailBean serverValidation(UtilityBean<AuditTrailBean> utilityBean) throws ServerException {
+        Map<Integer, MasterBigFeatureBean> activityTypeMap = masterDataDao.getBigFeaturesMasterData().stream().collect(Collectors.toMap(MasterBigFeatureBean::getId, e -> e));
         try {
             String userId = commonUtils.getUserId(utilityBean.getAuthToken());
             if (userId == null) {
@@ -168,7 +166,7 @@ public class GetAuditTrailBL {
             }
             return auditTrailBean;
         } catch (Exception ex) {
-            throw new ServerException("Exception occur at GetAuditTrailBL :"+ ex.getMessage());
+            throw new ServerException(ex.getMessage());
         }
     }
 
@@ -250,7 +248,7 @@ public class GetAuditTrailBL {
         return Long.parseLong(tTime);
     }
 
-    private String getWhereClause(AuditTrailBean bean) {
+    public String getWhereClause(AuditTrailBean bean) {
         StringBuilder whereClause = new StringBuilder("account_id in (0,1, " + bean.getAccountId() + Constants.DB_CONDITION);
         if (!bean.getBigFeatureIds().isEmpty()) {
             whereClause.append(" mst_big_feature_id in (");
@@ -275,7 +273,9 @@ public class GetAuditTrailBL {
 
 
     List<AuditTrailPojo> getAuditDataList(AuditTrailBean bean, List<AuditBean> auditBeanDb) throws ControlCenterException {
-        Map<Integer, ControllerBean> ControllerMap = controllerDao.getControllerList(bean.getAccountId())
+        Map<Integer, MasterPageActionBean> subActivityTypeMap = masterDataDao.getPageActionsMasterData().stream().collect(Collectors.toMap(MasterPageActionBean::getId, e -> e));
+        Map<Integer, MasterBigFeatureBean> activityTypeMap = masterDataDao.getBigFeaturesMasterData().stream().collect(Collectors.toMap(MasterBigFeatureBean::getId, e -> e));
+        Map<Integer, ControllerBean> controllerMap = controllerDao.getControllerList(bean.getAccountId())
                 .stream()
                 .collect(Collectors.toMap(e -> Integer.parseInt(e.getAppId()), e -> e));
 
@@ -292,7 +292,7 @@ public class GetAuditTrailBL {
                 auditTrailPojo.setSubActivityType(subActivityType.getName());
             }
             if (auditBean.getSvcId() > 0) {
-                ControllerBean service = ControllerMap.get(auditBean.getSvcId());
+                ControllerBean service = controllerMap.get(auditBean.getSvcId());
                 if (service != null) {
                     auditTrailPojo.setServiceName(service.getName());
                 }

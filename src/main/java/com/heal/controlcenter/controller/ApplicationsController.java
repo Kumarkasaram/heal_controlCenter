@@ -42,7 +42,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RestController
 @Configuration
-@Tag(name ="" ,description= Constants.DESCRIPTION)
 public class ApplicationsController {
 
     @Autowired
